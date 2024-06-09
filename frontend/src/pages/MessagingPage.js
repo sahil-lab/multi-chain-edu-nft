@@ -1,25 +1,56 @@
 // src/pages/MessagingPage.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { AuthContext } from '../context/AuthContext';
+import io from 'socket.io-client';
 
 const MessagingPage = () => {
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState('');
+  const { user } = useContext(AuthContext);
+  const socket = io('http://localhost:3001'); // Connect to the Socket.io server
 
   useEffect(() => {
-    fetch('/api/messages')
-      .then(response => response.json())
-      .then(data => setMessages(data));
-  }, []);
+    if (user) {
+      fetch('/api/messages', {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => setMessages(data))
+        .catch((error) => console.error('Error:', error));
+
+      socket.on('message', (newMessage) => {
+        setMessages((prevMessages) => [...prevMessages, newMessage]);
+      });
+
+      return () => {
+        socket.disconnect();
+      };
+    }
+  }, [user, socket]);
 
   const sendMessage = () => {
-    fetch('/api/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message }),
-    })
-    .then(response => response.status === 201 && setMessages([...messages, { text: message }]))
-    .catch(error => console.error('Error:', error));
-    setMessage('');
+    if (user) {
+      fetch('/api/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${user.token}`,
+        },
+        body: JSON.stringify({ text: message }),
+      })
+        .then((response) => {
+          if (response.status === 201) {
+            setMessage('');
+          }
+        })
+        .catch((error) => console.error('Error:', error));
+    }
+  };
+
+  if (!user) {
+    return <p>Please log in to view and send messages.</p>;
   }
 
   return (
@@ -40,6 +71,6 @@ const MessagingPage = () => {
       </ul>
     </div>
   );
-}
+};
 
 export default MessagingPage;

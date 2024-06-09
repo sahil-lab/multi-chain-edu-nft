@@ -1,7 +1,7 @@
 // src/App.js
-
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import React, { useContext } from 'react';
+import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom';
+import { AuthContext } from './context/AuthContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import HomePage from './pages/HomePage';
@@ -12,17 +12,24 @@ import './App.css';
 import './index.css';
 
 const App = () => {
+  const { user, logout } = useContext(AuthContext);
+
   return (
     <Router>
       <div className="app">
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/" element={<HomePage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/service-listing" element={<ServiceListingPage />} />
-          <Route path="/messaging" element={<MessagingPage />} />
-        </Routes>
+        {user && (
+          <nav>
+            <button onClick={logout}>Logout</button>
+          </nav>
+        )}
+        <Switch>
+          <Route path="/login" component={Login} />
+          <Route path="/register" component={Register} />
+          <PrivateRoute path="/profile" component={ProfilePage} />
+          <PrivateRoute path="/service-listing" component={ServiceListingPage} />
+          <PrivateRoute path="/messaging" component={MessagingPage} />
+          <Route path="/" exact component={HomePage} />
+        </Switch>
       </div>
     </Router>
   );

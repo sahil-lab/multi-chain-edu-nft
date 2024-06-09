@@ -1,16 +1,33 @@
 // src/pages/Register.js
-
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 
 const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState(null);
+  const history = useHistory();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle registration logic here
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      if (!response.ok) {
+        throw new Error('Registration failed');
+      }
+      history.push('/login');
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
@@ -44,6 +61,7 @@ const Register = () => {
             required
           />
         </div>
+        {error && <p className="error">{error}</p>}
         <button type="submit">Register</button>
       </form>
       <p>
