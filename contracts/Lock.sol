@@ -10,7 +10,7 @@ contract Lock {
     constructor(uint _unlockTime) payable {
         require(
             _unlockTime > block.timestamp,
-            'Unlock time should be in the future'
+            "Unlock time should be in the future"
         );
         unlockTime = _unlockTime;
         owner = payable(msg.sender);

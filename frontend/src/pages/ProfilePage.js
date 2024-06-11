@@ -1,15 +1,14 @@
-// src/pages/ProfilePage.js
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 
 const ProfilePage = () => {
-  const [profile, setProfile] = useState({ name: '', email: '' });
+  const [profile, setProfile] = useState({ name: '', email: '', bio: '', completedCourses: [], certificates: [] });
   const [editMode, setEditMode] = useState(false);
   const { user } = useContext(AuthContext);
 
   useEffect(() => {
     if (user) {
-      fetch('/api/user/profile', {
+      fetch('/api/profile', {
         headers: {
           Authorization: `Bearer ${user.token}`,
         },
@@ -27,13 +26,13 @@ const ProfilePage = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (user) {
-      fetch('/api/user/profile', {
+      fetch('/api/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${user.token}`,
         },
-        body: JSON.stringify(profile),
+        body: JSON.stringify({ bio: profile.bio }),
       })
         .then((response) => response.json())
         .then((data) => {
@@ -47,38 +46,43 @@ const ProfilePage = () => {
   return (
     <div>
       <h1>Profile Page</h1>
-      {editMode ? (
-        <form onSubmit={handleSubmit}>
-          <div>
-            <label>Name:</label>
-            <input
-              type="text"
-              name="name"
-              value={profile.name}
+      <div>
+        <h2>Bio</h2>
+        {editMode ? (
+          <form onSubmit={handleSubmit}>
+            <textarea
+              name="bio"
+              value={profile.bio}
               onChange={handleChange}
             />
-          </div>
+            <button type="submit">Save</button>
+            <button type="button" onClick={() => setEditMode(false)}>Cancel</button>
+          </form>
+        ) : (
           <div>
-            <label>Email:</label>
-            <input
-              type="email"
-              name="email"
-              value={profile.email}
-              onChange={handleChange}
-            />
+            <p>{profile.bio}</p>
+            <button onClick={() => setEditMode(true)}>Edit</button>
           </div>
-          <button type="submit">Save</button>
-          <button type="button" onClick={() => setEditMode(false)}>
-            Cancel
-          </button>
-        </form>
-      ) : (
-        <div>
-          <p>Name: {profile.name}</p>
-          <p>Email: {profile.email}</p>
-          <button onClick={() => setEditMode(true)}>Edit</button>
-        </div>
-      )}
+        )}
+      </div>
+      <div>
+        <h2>Completed Courses</h2>
+        <ul>
+          {profile.completedCourses && profile.completedCourses.map((course) => (
+            <li key={course._id}>{course.title}</li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h2>Certificates</h2>
+        <ul>
+          {profile.certificates && profile.certificates.map((certificate) => (
+            <li key={certificate._id}>
+              <a href={certificate.tokenURI} target="_blank" rel="noopener noreferrer">View Certificate</a>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 };

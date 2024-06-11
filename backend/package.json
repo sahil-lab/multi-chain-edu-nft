@@ -10,10 +10,16 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@avalabs/avalanche-wallet-sdk": "^0.19.1",
+    "@binance-chain/bsc-use-wallet": "^0.8.1",
     "bcryptjs": "^2.4.3",
     "express": "^4.19.2",
+    "googleapis": "^140.0.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.4.1",
-    "socket.io": "^4.7.5"
+    "socket.io": "^4.7.5",
+    "stripe": "^15.10.0",
+    "twilio": "^5.1.1",
+    "web3": "^4.9.0"
   }
 }
