@@ -1,9 +1,26 @@
-// backend/routes/user.js
-const express = require('express');
-const { updateProfile } = require('../controllers/userController');
-const auth = require('../middleware/auth');
-const router = express.Router();
+const mongoose = require('mongoose');
 
-router.put('/profile', auth, updateProfile);
+const UserSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  password: {
+    type: String,
+    required: true,
+  },
+  mfaEnabled: {
+    type: Boolean,
+    default: false,
+  },
+  mfaSecret: {
+    type: String,
+  },
+});
 
-module.exports = router;
+module.exports = mongoose.model('User', UserSchema);

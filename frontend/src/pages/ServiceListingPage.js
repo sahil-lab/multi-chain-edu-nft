@@ -1,6 +1,6 @@
-// src/pages/ServiceListingPage.js
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
+import Review from '../components/Review';
 
 const ServiceListingPage = () => {
   const [services, setServices] = useState([]);
@@ -72,8 +72,10 @@ const ServiceListingPage = () => {
       <ul>
         {services.map((service) => (
           <li key={service._id}>
-            {service.name} - {service.description}
+            <h2>{service.name}</h2>
+            <p>{service.description}</p>
             <button onClick={() => deleteService(service._id)}>Delete</button>
+            <Review teacherId={service.teacher} />
           </li>
         ))}
       </ul>

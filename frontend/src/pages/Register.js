@@ -1,72 +1,96 @@
-// src/pages/Register.js
+// frontend/src/pages/Register.js
 import React, { useState } from 'react';
-import { Link, useHistory } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 
 const Register = () => {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState(null);
+  const [enableMfa, setEnableMfa] = useState(false);
+  const [qrCode, setQrCode] = useState('');
+  const [secret, setSecret] = useState('');
+  const [token, setToken] = useState('');
   const history = useHistory();
 
-  const handleSubmit = async (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-    try {
-      const response = await fetch('/api/auth/register', {
+    // Register user logic here
+    const response = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password }),
+    });
+    const data = await response.json();
+
+    if (enableMfa && data.token) {
+      // Generate MFA secret
+      const mfaResponse = await fetch('/api/auth/mfa/generate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${data.token}`,
+        },
       });
-      if (!response.ok) {
-        throw new Error('Registration failed');
-      }
+      const mfaData = await mfaResponse.json();
+      setQrCode(mfaData.dataUrl);
+      setSecret(mfaData.secret);
+    } else {
       history.push('/login');
-    } catch (err) {
-      setError(err.message);
+    }
+  };
+
+  const handleVerifyMfa = async () => {
+    // Verify MFA token logic here
+    const response = await fetch('/api/auth/mfa/verify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+      body: JSON.stringify({ token }),
+    });
+
+    if (response.ok) {
+      alert('MFA enabled successfully');
+      history.push('/login');
+    } else {
+      alert('Invalid token');
     }
   };
 
   return (
-    <div className="auth-container">
-      <h2>Register</h2>
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label>Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+    <div>
+      <h1>Register</h1>
+      <form onSubmit={handleRegister}>
+        <div>
+          <label>Name:</label>
+          <input type="text" value={name} onChange={(e) => setName(e.target.value)} required />
         </div>
-        <div className="form-group">
-          <label>Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+        <div>
+          <label>Email:</label>
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
         </div>
-        <div className="form-group">
-          <label>Confirm Password</label>
-          <input
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-          />
+        <div>
+          <label>Password:</label>
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
         </div>
-        {error && <p className="error">{error}</p>}
+        <div>
+          <label>Enable MFA:</label>
+          <input type="checkbox" checked={enableMfa} onChange={() => setEnableMfa(!enableMfa)} />
+        </div>
         <button type="submit">Register</button>
       </form>
-      <p>
-        Already have an account? <Link to="/login">Login</Link>
-      </p>
+      {qrCode && (
+        <div>
+          <h2>Scan this QR Code with your Authenticator App</h2>
+          <img src={qrCode} alt="MFA QR Code" />
+          <div>
+            <label>Enter the token from your Authenticator App:</label>
+            <input type="text" value={token} onChange={(e) => setToken(e.target.value)} required />
+            <button onClick={handleVerifyMfa}>Verify MFA</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
