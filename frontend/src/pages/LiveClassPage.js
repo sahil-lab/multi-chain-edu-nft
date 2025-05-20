@@ -1,11 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import Video from 'twilio-video';
 
 const LiveClassPage = () => {
   const localVideoRef = useRef();
-  const [room, setRoom] = useState(null);
-  const [identity, setIdentity] = useState('');
-  const [token, setToken] = useState('');
 
   useEffect(() => {
     const startVideo = async () => {
@@ -19,11 +16,9 @@ const LiveClassPage = () => {
         body: JSON.stringify({ identity: 'teacher' }), // Replace with dynamic identity if needed
       });
       const data = await response.json();
-      setToken(data.token);
 
       // Connect to the room
       Video.connect(data.token, { name: 'classroom' }).then((room) => {
-        setRoom(room);
         room.localParticipant.videoTracks.forEach(track => {
           const videoElement = track.track.attach();
           localVideoRef.current.appendChild(videoElement);

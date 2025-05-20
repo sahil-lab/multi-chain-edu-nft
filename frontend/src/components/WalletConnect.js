@@ -1,4 +1,3 @@
-// src/components/WalletConnect.js
 import React, { useState, useEffect } from 'react';
 import Web3 from 'web3';
 import { useWallet as useBscWallet } from '@binance-chain/bsc-use-wallet';
@@ -28,7 +27,7 @@ const WalletConnect = ({ setWallet, setChainId }) => {
     } else {
       alert('Please install MetaMask or use a supported wallet!');
     }
-  }, [bscWallet, avaxWallet]);
+  }, [bscWallet, avaxWallet, setWallet, setChainId]);
 
   return (
     <div>
